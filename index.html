@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASA POLNEP – Decision Support System</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-50:  #f0fdf4;
+      --green-100: #dcfce7;
+      --green-200: #bbf7d0;
+      --green-400: #4ade80;
+      --green-500: #22c55e;
+      --green-600: #16a34a;
+      --green-700: #15803d;
+      --green-800: #166534;
+      --green-900: #14532d;
+      --gray-50:   #f9fafb;
+      --gray-100:  #f3f4f6;
+      --gray-200:  #e5e7eb;
+      --gray-300:  #d1d5db;
+      --gray-400:  #9ca3af;
+      --gray-500:  #6b7280;
+      --gray-600:  #4b5563;
+      --gray-700:  #374151;
+      --gray-800:  #1f2937;
+      --gray-900:  #111827;
+      --white: #ffffff;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,.1), 0 4px 8px rgba(0,0,0,.05);
+      --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font);
+      background: var(--gray-100);
+      color: var(--gray-800);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Topbar ── */
+    .topbar {
+      background: var(--green-800);
+      color: white;
+      padding: 0 28px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.15rem; font-weight: 700; letter-spacing: .3px;
+    }
+    .topbar-brand .logo-icon {
+      width: 84px; height: 34px; background: var(--green-500);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; font-weight: 800; color: white;
+    }
+    .topbar-brand .brand-sub {
+      font-size: .7rem; font-weight: 400; opacity: .7;
+      display: block; letter-spacing: .5px; text-transform: uppercase;
+    }
+    .topbar-nav { display: flex; gap: 6px; }
+    .topbar-btn {
+      background: transparent; border: 1.5px solid rgba(255,255,255,.3);
+      color: white; padding: 6px 16px; border-radius: 6px;
+      font-family: var(--font); font-size: .85rem; font-weight: 600;
+      cursor: pointer; transition: all .18s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .topbar-btn:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.55); }
+    .topbar-btn.active { background: var(--green-600); border-color: var(--green-500); }
+
+    /* ── Page content ── */
+    .page-content { flex: 1; padding: 28px; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+    /* ── Page header ── */
+    .page-header {
+      background: white; border-radius: var(--radius-lg);
+      padding: 20px 24px; margin-bottom: 22px;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--green-500);
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    }
+    .page-header h1 { font-size: 1.3rem; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+    .page-header .timestamp {
+      font-size: .78rem; color: var(--gray-500); display: flex; align-items: center; gap: 5px;
+    }
+    .page-header .timestamp::before {
+      content: ''; display: inline-block; width: 7px; height: 7px;
+      background: var(--green-500); border-radius: 50%;
+    }
+
+    /* ── Title input ── */
+    .title-field { margin-bottom: 22px; }
+    .title-field label { font-size: .8rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 7px; }
+    .title-field input {
+      width: 100%; border: 1.5px solid var(--gray-200); border-radius: var(--radius-md);
+      padding: 11px 15px; font-family: var(--font); font-size: 1rem; color: var(--gray-800);
+      background: white; transition: border-color .15s, box-shadow .15s;
+      box-shadow: var(--shadow-sm);
+    }
+    .title-field input:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(34,197,94,.12); }
+
+    /* ── Section card ── */
+    .section-card {
+      background: white; border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm); margin-bottom: 22px; overflow: hidden;
+    }
+    .section-card-header {
+      padding: 16px 24px; border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .step-pill {
+      background: var(--green-600); color: white;
+      font-size: .7rem; font-weight: 800; padding: 3px 9px;
+      border-radius: 20px; letter-spacing: .5px; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-card-header h2 { font-size: 1rem; font-weight: 700; color: var(--gray-800); }
+    .section-card-body { padding: 22px 24px; }
+
+    /* ── Attribute grid ── */
+    .attr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .attr-card {
+      background: var(--gray-50); border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-md); padding: 16px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .attr-card:hover { border-color: var(--green-300); box-shadow: 0 0 0 3px rgba(34,197,94,.07); }
+    .attr-card-label {
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .6px; color: var(--green-700); margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .attr-card-label::before {
+      content: ''; display: inline-block; width: 8px; height: 8px;
+      background: var(--green-500); border-radius: 2px;
+    }
+
+    /* ── Form controls ── */
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { font-size: .78rem; font-weight: 600; color: var(--gray-600); display: block; margin-bottom: 5px; }
+    .field input, .field select {
+      width: 100%; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+      padding: 8px 11px; font-family: var(--font); font-size: .88rem; color: var(--gray-800);
+      background: white; transition: border-color .15s, box-shadow .15s; appearance: none;
+    }
+    .field input:focus, .field select:focus {
+      outline: none; border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(34,197,94,.12);
+    }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+    }
+
+    /* ── Action bar ── */
+    .action-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding-top: 18px; border-top: 1px solid var(--gray-100); margin-top: 18px;
+    }
+    .action-bar .spacer { flex: 1; }
+    .hint-text { font-size: .78rem; color: var(--gray-400); font-style: italic; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px; border-radius: var(--radius-sm); font-family: var(--font);
+      font-size: .85rem; font-weight: 600; cursor: pointer; border: 1.5px solid transparent;
+      transition: all .16s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--green-600); color: white; border-color: var(--green-600); }
+    .btn-primary:hover { background: var(--green-700); border-color: var(--green-700); box-shadow: 0 3px 10px rgba(21,128,61,.25); }
+    .btn-outline { background: white; color: var(--green-700); border-color: var(--green-300); }
+    .btn-outline:hover { background: var(--green-50); border-color: var(--green-500); }
+    .btn-danger { background: white; color: #dc2626; border-color: #fca5a5; }
+    .btn-danger:hover { background: #fef2f2; border-color: #f87171; }
+    .btn-ghost { background: transparent; color: var(--gray-500); border-color: var(--gray-200); }
+    .btn-ghost:hover { background: var(--gray-100); color: var(--gray-700); }
+    .btn-sm { padding: 5px 12px; font-size: .8rem; }
+    .btn-icon { padding: 7px; border-radius: var(--radius-sm); width: 32px; height: 32px; justify-content: center; }
+
+    /* ── Info banner ── */
+    .info-banner {
+      background: var(--green-50); border: 1px solid var(--green-200);
+      border-radius: var(--radius-md); padding: 12px 16px;
+      font-size: .85rem; color: var(--green-800); display: flex; align-items: center; gap: 8px;
+    }
+    .info-banner .icon { font-size: 1rem; flex-shrink: 0; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--gray-200); }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    thead tr { background: var(--green-700); }
+    thead th {
+      color: white; font-weight: 600; padding: 11px 14px;
+      text-align: left; font-size: .8rem; letter-spacing: .3px;
+      white-space: nowrap;
+    }
+    thead th.center { text-align: center; }
+    tbody tr { border-bottom: 1px solid var(--gray-100); transition: background .12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--green-50); }
+    tbody td { padding: 9px 14px; color: var(--gray-700); }
+    tbody td.center { text-align: center; }
+    tbody td input {
+      width: 100%; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+      padding: 6px 9px; font-family: var(--font); font-size: .85rem; background: white;
+      transition: border-color .15s;
+    }
+    tbody td input:focus { outline: none; border-color: var(--green-500); }
+    .roc-mono { font-family: 'Courier New', monospace; font-size: .82rem; color: var(--green-700); font-weight: 600; }
+
+    /* ── Result card ── */
+    .result-card {
+      background: linear-gradient(135deg, var(--green-50) 0%, white 100%);
+      border: 1.5px solid var(--green-200); border-radius: var(--radius-lg);
+      padding: 20px 22px; margin-top: 18px;
+    }
+    .result-card-title {
+      font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+      color: var(--green-700); margin-bottom: 14px; display: flex; align-items: center; gap: 7px;
+    }
+    .result-card-title::before { content: '✦'; font-size: .7rem; }
+    .winner-row { background: rgba(34,197,94,.08) !important; }
+    .winner-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--green-600); color: white;
+      font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    }
+    .conclusion-box {
+      background: var(--green-800); color: white; border-radius: var(--radius-md);
+      padding: 14px 18px; font-size: .9rem; line-height: 1.5; margin-top: 16px;
+    }
+    .conclusion-box b { color: var(--green-300); }
+
+    /* ── Tutorial ── */
+    .tutorial-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .accordion-card {
+      background: white; border-radius: var(--radius-md);
+      border: 1.5px solid var(--gray-200); overflow: hidden;
+      box-shadow: var(--shadow-sm); transition: border-color .15s;
+    }
+    .accordion-card.open { border-color: var(--green-300); }
+    .accordion-trigger {
+      width: 100%; text-align: left; padding: 16px 20px;
+      background: transparent; border: none; cursor: pointer; font-family: var(--font);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      transition: background .12s;
+    }
+    .accordion-trigger:hover { background: var(--gray-50); }
+    .accordion-card.open .accordion-trigger { background: var(--green-50); }
+    .accordion-trigger-text { font-size: .92rem; font-weight: 600; color: var(--gray-800); text-align: left; }
+    .accordion-card.open .accordion-trigger-text { color: var(--green-800); }
+    .accordion-chevron {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--gray-100); display: flex; align-items: center; justify-content: center;
+      font-size: .6rem; color: var(--gray-500); flex-shrink: 0; transition: all .2s;
+    }
+    .accordion-card.open .accordion-chevron { background: var(--green-200); color: var(--green-800); transform: rotate(180deg); }
+    .accordion-body {
+      padding: 18px 22px; border-top: 1px solid var(--gray-100);
+      font-size: .9rem; line-height: 1.7; color: var(--gray-700);
+    }
+    .accordion-body h5 { font-size: .88rem; font-weight: 700; color: var(--green-800); margin: 18px 0 10px; }
+    .accordion-body h5:first-child { margin-top: 0; }
+    .accordion-body ul { padding-left: 18px; }
+    .accordion-body li { margin-bottom: 7px; }
+    .formula-box {
+      background: var(--green-50); border: 1px solid var(--green-200);
+      border-radius: var(--radius-md); padding: 14px; text-align: center; margin: 14px 0;
+      font-size: 1rem; color: var(--green-900); font-style: italic;
+    }
+    .tutorial-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: 8px; }
+    .tutorial-table th { background: var(--green-700); color: white; padding: 8px 12px; text-align: center; }
+    .tutorial-table td { padding: 7px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); }
+    .tutorial-table tbody tr:nth-child(even) { background: var(--gray-50); }
+    .tutorial-table td:last-child { text-align: center; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,.45);
+      z-index: 200; display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(3px);
+    }
+    .modal-box {
+      background: white; border-radius: var(--radius-xl);
+      width: 460px; max-width: 92vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2), 0 8px 16px rgba(0,0,0,.1);
+      overflow: hidden;
+    }
+    .modal-head {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-head h3 { font-size: 1rem; font-weight: 700; color: var(--gray-800); }
+    .modal-close {
+      width: 28px; height: 28px; border-radius: 50%; border: none;
+      background: var(--gray-100); color: var(--gray-500); font-size: .9rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
+    .modal-close:hover { background: var(--gray-200); }
+    .modal-body { padding: 20px 24px; font-size: .9rem; color: var(--gray-700); line-height: 1.6; }
+    .modal-result-icon {
+      width: 52px; height: 52px; background: var(--green-100);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin: 0 auto 14px;
+    }
+    .modal-result-text { text-align: center; }
+    .modal-result-text .winner-name { font-size: 1.2rem; font-weight: 700; color: var(--green-700); margin: 6px 0; }
+    .modal-foot { padding: 14px 24px; border-top: 1px solid var(--gray-100); display: flex; justify-content: flex-end; }
+
+    /* ── Lang toggle ── */
+    .lang-toggle {
+      display: inline-flex; border-radius: 8px; overflow: hidden;
+      border: 1.5px solid var(--green-300); background: white;
+      box-shadow: var(--shadow-sm); flex-shrink: 0;
+    }
+    .lang-btn {
+      padding: 5px 13px; font-size: .78rem; font-weight: 700; border: none;
+      background: transparent; cursor: pointer; color: var(--gray-500);
+      font-family: var(--font); letter-spacing: .4px; transition: all .15s;
+    }
+    .lang-btn:first-child { border-right: 1.5px solid var(--green-300); }
+    .lang-btn.active { background: var(--green-600); color: white; }
+    .lang-btn:not(.active):hover { background: var(--green-50); color: var(--green-700); }
+
+    @media print { .topbar-nav, #hideOnPrint { display: none !important; } }
+    @media (max-width: 640px) {
+      .page-content { padding: 14px; }
+      .section-card-body { padding: 16px; }
+      .attr-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ── ROC ── */
+function calculateValue(length, adjustedIndex) {
+  if (length === 3) return adjustedIndex===0?(1+1/2+1/3)/3:adjustedIndex===1?(0+1/2+1/3)/3:adjustedIndex===2?(0+0+1/3)/3:0;
+  if (length === 4) return adjustedIndex===0?(1+1/2+1/3+1/4)/4:adjustedIndex===1?(0+1/2+1/3+1/4)/4:adjustedIndex===2?(0+0+1/3+1/4)/4:adjustedIndex===3?(0+0+0+1/4)/4:0;
+  if (length === 5) return adjustedIndex===0?(1+1/2+1/3+1/4+1/5)/5:adjustedIndex===1?(0+1/2+1/3+1/4+1/5)/5:adjustedIndex===2?(0+0+1/3+1/4+1/5)/5:adjustedIndex===3?(0+0+0+1/4+1/5)/5:adjustedIndex===4?(0+0+0+0+1/5)/5:0;
+  if (length === 6) return adjustedIndex===0?(1+1/2+1/3+1/4+1/5+1/6)/6:adjustedIndex===1?(0+1/2+1/3+1/4+1/5+1/6)/6:adjustedIndex===2?(0+0+1/3+1/4+1/5+1/6)/6:adjustedIndex===3?(0+0+0+1/4+1/5+1/6)/6:adjustedIndex===4?(0+0+0+0+1/5+1/6)/6:adjustedIndex===5?(0+0+0+0+0+1/6)/6:0;
+  if (length === 7) return adjustedIndex===0?(1+1/2+1/3+1/4+1/5+1/6+1/7)/7:adjustedIndex===1?(0+1/2+1/3+1/4+1/5+1/6+1/7)/7:adjustedIndex===2?(0+0+1/3+1/4+1/5+1/6+1/7)/7:adjustedIndex===3?(0+0+0+1/4+1/5+1/6+1/7)/7:adjustedIndex===4?(0+0+0+0+1/5+1/6+1/7)/7:adjustedIndex===5?(0+0+0+0+0+1/6+1/7)/7:adjustedIndex===6?(0+0+0+0+0+0+1/7)/7:0;
+  if (length === 8) return adjustedIndex===0?(1+1/2+1/3+1/4+1/5+1/6+1/7+1/8)/8:adjustedIndex===1?(0+1/2+1/3+1/4+1/5+1/6+1/7+1/8)/8:adjustedIndex===2?(0+0+1/3+1/4+1/5+1/6+1/7+1/8)/8:adjustedIndex===3?(0+0+0+1/4+1/5+1/6+1/7+1/8)/8:adjustedIndex===4?(0+0+0+0+1/5+1/6+1/7+1/8)/8:adjustedIndex===5?(0+0+0+0+0+1/6+1/7+1/8)/8:adjustedIndex===6?(0+0+0+0+0+0+1/7+1/8)/8:adjustedIndex===7?(0+0+0+0+0+0+0+1/8)/8:0;
+}
+function calculateRankOrderCentroid(names, weights) {
+  const length = weights.length;
+  if (length < 3 || length > 8 || weights.some(isNaN)) return [];
+  const triplets = names.map((name, index) => ({ index, name, weight: weights[index] }));
+  const sorted = [...triplets].sort((a, b) => a.weight - b.weight);
+  const map = new Map(sorted.map(({ index }, si) => [index, si]));
+  return names.map((_, index) => calculateValue(length, map.get(index)));
+}
+
+/* ── Modal ── */
+function Modal({ show, onHide, title, children, footer }) {
+  if (!show) return null;
+  return (
+    <div className="modal-overlay" onClick={onHide}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <div className="modal-head">
+          <h3>{title}</h3>
+          <button className="modal-close" onClick={onHide}>✕</button>
+        </div>
+        <div className="modal-body">{children}</div>
+        {footer && <div className="modal-foot">{footer}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ── Accordion ── */
+function AccordionItem({ header, children, defaultOpen }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <div className={`accordion-card ${open ? 'open' : ''}`}>
+      <button className="accordion-trigger" onClick={() => setOpen(o => !o)}>
+        <span className="accordion-trigger-text">{header}</span>
+        <span className="accordion-chevron">▼</span>
+      </button>
+      {open && <div className="accordion-body">{children}</div>}
+    </div>
+  );
+}
+
+/* ── Main App ── */
+function App() {
+  const [page, setPage] = useState('dashboard');
+  const [lang, setLang] = useState('en');
+
+  const T = {
+    en: {
+      brandSub: 'ROC and SAW-based Decision Support System',
+      navDashboard: '⊞ Dashboard',
+      navTutorial: 'Tutorial',
+      dashboardDesc: '<i><strong>Q-毘古</strong></i> is inspired by <i>Kuebiko-no-Kami 久延毘古神</i>, the Shinto deity of wisdom described in the Kojiki as "one whose legs do not walk, yet knows all things under heaven." The hyphen in <i>Q-毘古</i> bridges the modern Question posed by users with <i>毘古</i>, the ancient deity who answers through the computational wisdom of Rank Order Centroid and Simple Additive Weighting. <i>Q-毘古</i> embodies a digital deity: silent in calculation, yet decisive in judgment.',
+      step1Label: 'Step 1',
+      step1Title: 'Criterion Weighting — Rank Order Centroid (ROC)',
+      attrLabel: 'Attribute',
+      attrName: 'Attribute Name',
+      attrNamePlaceholder: 'e.g. Moisture Content',
+      importanceLevel: 'Importance Level *',
+      importanceLevelSelect: '— Select Level —',
+      importanceLevelOption: 'Level',
+      attrCategory: 'Attribute Category',
+      attrCategorySelect: '— Select Category —',
+      benefit: 'Favorable (Benefit)',
+      cost: 'Unfavorable (Cost)',
+      addAttr: '+ Add Attribute',
+      removeAttr: '− Remove Attribute',
+      hintText: '* Level 1 = highest importance > Level',
+      hintText2: '= lowest',
+      resetStep1: '↺ Reset',
+      processWeights: 'Process Weights →',
+      rocResultLabel: 'Result',
+      rocResultTitle: 'Final Weighting Results (ROC)',
+      colNum: '#',
+      colAttrName: 'Attribute Name',
+      colROCWeight: 'ROC Weight',
+      colCategory: 'Category',
+      step2Label: 'Step 2',
+      step2Title: 'Decision Making — Simple Additive Weighting (SAW)',
+      infoBannerROC: 'This step will be available once the ROC weight calculation (Step 1) has been completed.',
+      infoBannerAdd: 'Add alternatives below and enter the performance values for each attribute.',
+      colAlternative: 'Alternative',
+      colRemove: 'Remove',
+      altPlaceholder: 'Alternative name',
+      addAlt: '+ Add Alternative',
+      calcSAW: 'Calculate with SAW →',
+      rankResultTitle: 'Alternative Ranking Results',
+      colRank: 'Rank',
+      colWeightedSum: 'Weighted Sum',
+      rank1st: '🏆 1st',
+      conclusionBox: (best) => `The best preference is awarded to alternative <b>${best}</b>, ranked first with the highest weighted sum value based on the ROC and SAW calculations.`,
+      resetAll: '↺ Reset All',
+      tutorialTitle: 'Tutorial',
+      tutorialSubtitle: 'LEARN HOW ROC AND SAW WORK!',
+      acc1Header: '📐  Rank Order Centroid (ROC) — Weighting Method',
+      acc1p1: 'Rank Order Centroid (ROC) is one of the weighting methods commonly used in <strong>Multiple Attribute Decision Making (MADM)</strong>. The principle of ROC is to assign weights based on the importance level of each criterion relative to the others — expressed as "criterion 1 is more important than criterion 2, criterion 2 is more important than criterion 3…" and so on.',
+      acc1formulaNote: 'Where <strong>W<sub>k</sub></strong> is the final weight of each criterion, <strong>k</strong> is the total number of criteria, and <strong>i</strong> is the importance priority rank of each criterion ordered by the preference statement.',
+      acc2Header: '📊  Simple Additive Weighting (SAW) — Decision Method',
+      acc2p1: 'After criterion weighting is completed using ROC, data processing continues with SAW as the main decision-making method. SAW calculates the weighted sum of the performance rating of each alternative across all criteria.',
+      acc2items: [
+        'Determine criteria (C<sub>j</sub>) and alternatives (A<sub>i</sub>)',
+        'Enter performance rating values for each alternative',
+        'Use weight values (W) from the ROC calculation',
+        'Build the decision matrix (X)',
+        'Normalize values: <em>Benefit → r<sub>ij</sub> = x<sub>ij</sub> / max(x<sub>ij</sub>)</em> &nbsp;|&nbsp; <em>Cost → r<sub>ij</sub> = min(x<sub>ij</sub>) / x<sub>ij</sub></em>',
+        'Calculate preference score: <em>V<sub>i</sub> = Σ W<sub>j</sub> × r<sub>ij</sub></em>',
+      ],
+      acc2p2: 'The alternative with the highest V<sub>i</sub> score is selected as the final decision.',
+      acc3Header: '🔖  What is an Attribute? Learn more here!',
+      acc3p1: 'Attributes are important parameters or criteria that influence the decision-making activity. For example, in the development of agroindustrial products, attributes can include: (1) Physical quality, (2) Chemical quality, (3) Biological quality, and (4) Organoleptic quality.',
+      acc3physical: 'Physical Quality',
+      acc3chemical: 'Chemical Quality',
+      acc3biological: 'Biological Quality',
+      acc3organo: 'Organoleptic Quality',
+      colCriterion: 'Criterion',
+      colUnit: 'Unit',
+      colCatTbl: 'Category',
+      physicalRows: [['Moisture Content','% (Percent)','Unfavorable (Cost)'],['Viscosity','Centipoise (cp)','Favorable (Benefit)']],
+      chemicalRows: [['Carbohydrate Content','%/100g','Favorable (Benefit)'],['Protein Content','%/100g','Favorable (Benefit)'],['Fat Content','%/100g','Favorable (Benefit)']],
+      bioRows: [['<em>Salmonella sp.</em> Contamination (TPC)','Log CFU/gram','Unfavorable (Cost)']],
+      organoRows: [['Taste (Hedonic Scale)','—','Favorable (Benefit)'],['Aroma (Hedonic Scale)','—','Favorable (Benefit)'],['Color (Hedonic Scale)','—','Favorable (Benefit)'],['Texture (Hedonic Scale)','—','Favorable (Benefit)']],
+      acc3note: 'Each case will have different attribute requirements.',
+      modalMinTitle: 'Too Few Attributes',
+      modalMinBody: 'There must be at least <strong>3 attributes</strong> used in the calculation.',
+      modalMaxTitle: 'Too Many Attributes',
+      modalMaxBody: 'The maximum number of attributes that can be used is <strong>8</strong>.',
+      modalResultTitle: 'Calculation Complete',
+      modalResultSub: 'The best preference is awarded to',
+      modalResultRank: (best) => `ranked <strong>1st</strong> with the highest weighted sum based on the ROC and SAW calculation.`,
+      understood: 'Understood',
+      close: 'Close',
+      alertAttrEmpty: 'All attribute name fields must be filled in!',
+      alertFieldsEmpty: 'All Importance Levels and Attribute Categories must be filled in!',
+      alertCalcError: 'Please enter all attribute names and importance levels!',
+      alertLevelDupe: 'This importance level is already selected in another column. Please choose a different one.',
+      alertNoAlt: 'Please add at least one alternative before calculating with SAW.',
+      alertAltEmpty: 'The "Alternative" column must not be empty.',
+      alertCellEmpty: 'The table has empty cells. Please fill in all cells before calculating.',
+    },
+    id: {
+      brandSub: 'Sistem Pendukung Keputusan berbasis ROC dan SAW',
+      navDashboard: '⊞ Dashboard',
+      navTutorial: 'Tutorial',
+      dashboardDesc: '<i><strong>Q-毘古</strong></i> terinspirasi dari <i>Kuebiko-no-Kami 久延毘古神</i>, dewa kebijaksanaan Shinto yang digambarkan dalam Kojiki sebagai "ia yang kakinya tak berjalan, namun mengetahui segala hal di bawah langit." Tanda hubung dalam <i>Q-毘古</i> menjembatani Pertanyaan modern yang diajukan pengguna dengan <i>毘古</i>, dewa kuno yang menjawab melalui kebijaksanaan komputasi Rank Order Centroid dan Simple Additive Weighting. <i>Q-毘古</i> mewujudkan dewa digital: diam dalam perhitungan, namun tegas dalam keputusan.',
+      step1Label: 'Langkah 1',
+      step1Title: 'Pembobotan Kriteria — Rank Order Centroid (ROC)',
+      attrLabel: 'Atribut',
+      attrName: 'Nama Atribut',
+      attrNamePlaceholder: 'mis. Kadar Air',
+      importanceLevel: 'Tingkat Kepentingan *',
+      importanceLevelSelect: '— Pilih Tingkat —',
+      importanceLevelOption: 'Tingkat',
+      attrCategory: 'Kategori Atribut',
+      attrCategorySelect: '— Pilih Kategori —',
+      benefit: 'Menguntungkan (Benefit)',
+      cost: 'Merugikan (Cost)',
+      addAttr: '+ Tambah Atribut',
+      removeAttr: '− Hapus Atribut',
+      hintText: '* Tingkat 1 = kepentingan tertinggi > Tingkat',
+      hintText2: '= terendah',
+      resetStep1: '↺ Reset',
+      processWeights: 'Proses Bobot →',
+      rocResultLabel: 'Hasil',
+      rocResultTitle: 'Hasil Pembobotan Akhir (ROC)',
+      colNum: '#',
+      colAttrName: 'Nama Atribut',
+      colROCWeight: 'Bobot ROC',
+      colCategory: 'Kategori',
+      step2Label: 'Langkah 2',
+      step2Title: 'Pengambilan Keputusan — Simple Additive Weighting (SAW)',
+      infoBannerROC: 'Langkah ini akan tersedia setelah perhitungan bobot ROC (Langkah 1) selesai dilakukan.',
+      infoBannerAdd: 'Tambahkan alternatif di bawah dan masukkan nilai kinerja untuk setiap atribut.',
+      colAlternative: 'Alternatif',
+      colRemove: 'Hapus',
+      altPlaceholder: 'Nama alternatif',
+      addAlt: '+ Tambah Alternatif',
+      calcSAW: 'Hitung dengan SAW →',
+      rankResultTitle: 'Hasil Peringkat Alternatif',
+      colRank: 'Peringkat',
+      colWeightedSum: 'Jumlah Terbobot',
+      rank1st: '🏆 1',
+      conclusionBox: (best) => `Preferensi terbaik diberikan kepada alternatif <b>${best}</b>, menempati peringkat pertama dengan nilai jumlah terbobot tertinggi berdasarkan perhitungan ROC dan SAW.`,
+      resetAll: '↺ Reset Semua',
+      tutorialTitle: 'Tutorial',
+      tutorialSubtitle: 'PELAJARI CARA KERJA ROC DAN SAW!',
+      acc1Header: '📐  Rank Order Centroid (ROC) — Metode Pembobotan',
+      acc1p1: 'Rank Order Centroid (ROC) adalah salah satu metode pembobotan yang umum digunakan dalam <strong>Multiple Attribute Decision Making (MADM)</strong>. Prinsip ROC adalah memberikan bobot berdasarkan tingkat kepentingan setiap kriteria terhadap yang lain — dinyatakan sebagai "kriteria 1 lebih penting dari kriteria 2, kriteria 2 lebih penting dari kriteria 3…" dan seterusnya.',
+      acc1formulaNote: 'Di mana <strong>W<sub>k</sub></strong> adalah bobot akhir setiap kriteria, <strong>k</strong> adalah jumlah total kriteria, dan <strong>i</strong> adalah peringkat prioritas kepentingan setiap kriteria yang diurutkan berdasarkan pernyataan preferensi.',
+      acc2Header: '📊  Simple Additive Weighting (SAW) — Metode Keputusan',
+      acc2p1: 'Setelah pembobotan kriteria selesai menggunakan ROC, pengolahan data dilanjutkan dengan SAW sebagai metode pengambilan keputusan utama. SAW menghitung jumlah terbobot dari nilai kinerja setiap alternatif di seluruh kriteria.',
+      acc2items: [
+        'Tentukan kriteria (C<sub>j</sub>) dan alternatif (A<sub>i</sub>)',
+        'Masukkan nilai rating kinerja untuk setiap alternatif',
+        'Gunakan nilai bobot (W) dari perhitungan ROC',
+        'Bangun matriks keputusan (X)',
+        'Normalisasi nilai: <em>Benefit → r<sub>ij</sub> = x<sub>ij</sub> / max(x<sub>ij</sub>)</em> &nbsp;|&nbsp; <em>Cost → r<sub>ij</sub> = min(x<sub>ij</sub>) / x<sub>ij</sub></em>',
+        'Hitung skor preferensi: <em>V<sub>i</sub> = Σ W<sub>j</sub> × r<sub>ij</sub></em>',
+      ],
+      acc2p2: 'Alternatif dengan skor V<sub>i</sub> tertinggi dipilih sebagai keputusan akhir.',
+      acc3Header: '🔖  Apa itu Atribut? Pelajari selengkapnya di sini!',
+      acc3p1: 'Atribut adalah parameter atau kriteria penting yang mempengaruhi aktivitas pengambilan keputusan. Misalnya, dalam pengembangan produk agroindustri, atribut dapat mencakup: (1) Kualitas fisik, (2) Kualitas kimia, (3) Kualitas biologis, dan (4) Kualitas organoleptik.',
+      acc3physical: 'Kualitas Fisik',
+      acc3chemical: 'Kualitas Kimia',
+      acc3biological: 'Kualitas Biologis',
+      acc3organo: 'Kualitas Organoleptik',
+      colCriterion: 'Kriteria',
+      colUnit: 'Satuan',
+      colCatTbl: 'Kategori',
+      physicalRows: [['Kadar Air','% (Persen)','Merugikan (Cost)'],['Viskositas','Centipoise (cp)','Menguntungkan (Benefit)']],
+      chemicalRows: [['Kadar Karbohidrat','%/100g','Menguntungkan (Benefit)'],['Kadar Protein','%/100g','Menguntungkan (Benefit)'],['Kadar Lemak','%/100g','Menguntungkan (Benefit)']],
+      bioRows: [['Kontaminasi <em>Salmonella sp.</em> (TPC)','Log CFU/gram','Merugikan (Cost)']],
+      organoRows: [['Rasa (Skala Hedonik)','—','Menguntungkan (Benefit)'],['Aroma (Skala Hedonik)','—','Menguntungkan (Benefit)'],['Warna (Skala Hedonik)','—','Menguntungkan (Benefit)'],['Tekstur (Skala Hedonik)','—','Menguntungkan (Benefit)']],
+      acc3note: 'Setiap kasus akan memiliki kebutuhan atribut yang berbeda.',
+      modalMinTitle: 'Terlalu Sedikit Atribut',
+      modalMinBody: 'Minimal harus ada <strong>3 atribut</strong> yang digunakan dalam perhitungan.',
+      modalMaxTitle: 'Terlalu Banyak Atribut',
+      modalMaxBody: 'Jumlah maksimum atribut yang dapat digunakan adalah <strong>8</strong>.',
+      modalResultTitle: 'Perhitungan Selesai',
+      modalResultSub: 'Preferensi terbaik diberikan kepada',
+      modalResultRank: (best) => `menempati peringkat <strong>1</strong> dengan jumlah terbobot tertinggi berdasarkan perhitungan ROC dan SAW.`,
+      understood: 'Mengerti',
+      close: 'Tutup',
+      alertAttrEmpty: 'Semua kolom nama atribut harus diisi!',
+      alertFieldsEmpty: 'Semua Tingkat Kepentingan dan Kategori Atribut harus diisi!',
+      alertCalcError: 'Harap masukkan semua nama atribut dan tingkat kepentingan!',
+      alertLevelDupe: 'Tingkat kepentingan ini sudah dipilih di kolom lain. Pilih yang berbeda.',
+      alertNoAlt: 'Harap tambahkan setidaknya satu alternatif sebelum menghitung dengan SAW.',
+      alertAltEmpty: 'Kolom "Alternatif" tidak boleh kosong.',
+      alertCellEmpty: 'Tabel memiliki sel kosong. Harap isi semua sel sebelum menghitung.',
+    },
+  };
+  const t = T[lang];
+  const [attrNames, setAttrNames]   = useState(['', '', '']);
+  const [weightVal, setWeightVal]   = useState(['', '', '']);
+  const [choiceVal, setChoiceVal]   = useState(['', '', '']);
+  const [roc, setRoc]               = useState([]);
+  const [rows, setRows]             = useState([]);
+  const [sawResults, setSawResults] = useState([]);
+  const [titleVal, setTitleVal]     = useState('');
+  const [showTahap3, setShowTahap3] = useState(false);
+  const [showTahap4, setShowTahap4] = useState(false);
+  const [showModal, setShowModal]   = useState(false);
+  const [showMinModal, setShowMinModal]   = useState(false);
+  const [showMaxModal, setShowMaxModal]   = useState(false);
+  const [reset, setReset] = useState(false);
+
+  useEffect(() => { if (reset) setReset(false); }, [reset]);
+
+  const maxW = attrNames.length;
+  const isSelected = (v, idx) => weightVal.some((w, i) => String(w) === String(v) && i !== idx);
+  const getBest = () => sawResults.length ? sawResults[0].alternative : '';
+
+  const addAttr = () => {
+    if (attrNames.length < 8) { setAttrNames([...attrNames,'']); setWeightVal([...weightVal,'']); setChoiceVal([...choiceVal,'']); }
+    else setShowMaxModal(true);
+  };
+  const removeAttr = () => {
+    if (attrNames.length > 3) {
+      const n = attrNames.length - 1;
+      setAttrNames(attrNames.slice(0,n)); setWeightVal(weightVal.slice(0,n)); setChoiceVal(choiceVal.slice(0,n));
+    } else setShowMinModal(true);
+  };
+
+  const handleWeightChange = (e, i) => {
+    const v = e.target.value;
+    if (isSelected(v, i)) { alert(t.alertLevelDupe); return; }
+    const u = [...weightVal]; u[i] = v; setWeightVal(u);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (attrNames.some(n => n === '')) return alert(t.alertAttrEmpty);
+    if (weightVal.includes('') || !choiceVal.every(c => c === 'Benefit' || c === 'Cost'))
+      return alert(t.alertFieldsEmpty);
+    const calc = calculateRankOrderCentroid(attrNames, weightVal.map(Number));
+    if (!calc.length) return alert(t.alertCalcError);
+    setRoc(calc); setShowTahap3(true);
+  };
+
+  const addRow = () => {
+    const r = { alternative: '' }; attrNames.forEach(n => { r[n] = ''; });
+    setRows([...rows, r]);
+  };
+  const updateRow = (ri, key, val) => setRows(rows.map((r, i) => i === ri ? { ...r, [key]: val } : r));
+  const removeRow = (ri) => setRows(rows.filter((_, i) => i !== ri));
+
+  const handleSAW = () => {
+    if (!rows.length) return alert(t.alertNoAlt);
+    if (rows.some(r => !r.alternative)) return alert(t.alertAltEmpty);
+    if (rows.some(r => attrNames.some(n => r[n] === '' || r[n] === undefined))) return alert(t.alertCellEmpty);
+    const names = rows.map(r => r.alternative);
+    const values = rows.map(r => attrNames.map(n => parseFloat(r[n]) || 0));
+    const normalized = values.map(alt => alt.map((val, j) => {
+      if (choiceVal[j] === 'Benefit') { const mx = Math.max(...values.map(r => parseFloat(r[j]) || 0)); return mx ? val/mx : 0; }
+      if (choiceVal[j] === 'Cost')    { const mn = Math.min(...values.map(r => parseFloat(r[j]) || 0)); return val ? mn/val : 0; }
+      return val;
+    }));
+    const results = normalized
+      .map((alt, ai) => ({ alternative: names[ai], sum: alt.reduce((s,v,j) => s + v*roc[j], 0) }))
+      .sort((a,b) => b.sum - a.sum).map((item, i) => ({ ...item, rank: i+1 }));
+    setSawResults(results); setShowTahap4(true); setShowModal(true);
+  };
+
+  const resetAll = () => {
+    setAttrNames(['','','']); setWeightVal(['','','']); setChoiceVal(['','','']);
+    setRoc([]); setRows([]); setSawResults([]); setTitleVal('');
+    setShowTahap3(false); setShowTahap4(false); setShowModal(false);
+    setReset(true);
+  };
+  const resetStep1 = () => {
+    setAttrNames(['','','']); setWeightVal(['','','']); setChoiceVal(['','','']);
+    setRoc([]); setRows([]); setSawResults([]);
+    setShowTahap3(false); setShowTahap4(false); setReset(true);
+  };
+
+  const now = new Date();
+
+  return (
+    <div className="app-shell">
+      {/* ── Topbar ── */}
+      <header className="topbar">
+        <div className="topbar-brand">
+          <div className="logo-icon">Qー毘古</div>
+          <div>
+            Qbico
+            <span className="brand-sub">{t.brandSub}</span>
+          </div>
+        </div>
+        <nav className="topbar-nav" id="hideOnPrint">
+          <button className={`topbar-btn ${page==='dashboard'?'active':''}`} onClick={() => setPage('dashboard')}>
+            {t.navDashboard}
+          </button>
+          <button className={`topbar-btn ${page==='tutorial'?'active':''}`} onClick={() => setPage('tutorial')}>
+            {t.navTutorial}
+          </button>
+          <div className="lang-toggle">
+            <button className={`lang-btn ${lang==='en'?'active':''}`} onClick={() => setLang('en')}>EN</button>
+            <button className={`lang-btn ${lang==='id'?'active':''}`} onClick={() => setLang('id')}>ID</button>
+          </div>
+        </nav>
+      </header>
+
+      {/* ── Dashboard ── */}
+      {page === 'dashboard' && (
+        <main className="page-content">
+          <div className="page-header">
+            <div>
+              <p dangerouslySetInnerHTML={{__html: t.dashboardDesc}} />
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            {/* ── Step 1 ── */}
+            <div className="section-card">
+              <div className="section-card-header">
+                <span className="step-pill">{t.step1Label}</span>
+                <h2>{t.step1Title}</h2>
+              </div>
+              <div className="section-card-body">
+                <div className="attr-grid">
+                  {attrNames.map((name, i) => (
+                    <div className="attr-card" key={i}>
+                      <div className="attr-card-label">{t.attrLabel} {i+1}</div>
+                      <div className="field">
+                        <label>{t.attrName}</label>
+                        <input type="text" value={name} placeholder={t.attrNamePlaceholder}
+                          onChange={e => { const u=[...attrNames]; u[i]=e.target.value; setAttrNames(u); }} />
+                      </div>
+                      <div className="field">
+                        <label>{t.importanceLevel}</label>
+                        <select value={weightVal[i]} onChange={e => handleWeightChange(e, i)}>
+                          <option value="" disabled>{t.importanceLevelSelect}</option>
+                          {Array.from({length: maxW}, (_,k) => (
+                            <option key={k+1} value={k+1} disabled={isSelected(k+1, i) && String(weightVal[i]) !== String(k+1)}>
+                              {t.importanceLevelOption} {k+1}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="field">
+                        <label>{t.attrCategory}</label>
+                        <select value={choiceVal[i]} onChange={e => { const u=[...choiceVal]; u[i]=e.target.value; setChoiceVal(u); }}>
+                          <option value="" disabled>{t.attrCategorySelect}</option>
+                          <option value="Benefit">{t.benefit}</option>
+                          <option value="Cost">{t.cost}</option>
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="action-bar" id="hideOnPrint">
+                  <button type="button" className="btn btn-outline btn-sm" onClick={addAttr}>{t.addAttr}</button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={removeAttr}>{t.removeAttr}</button>
+                  <p className="hint-text">{t.hintText} {maxW} {t.hintText2}</p>
+                  <div className="spacer"></div>
+                  <button type="button" className="btn btn-danger btn-sm" onClick={resetStep1}>{t.resetStep1}</button>
+                  <button type="submit" className="btn btn-primary btn-sm">{t.processWeights}</button>
+                </div>
+              </div>
+            </div>
+
+            {/* ROC Result */}
+            {roc.length > 0 && (
+              <div className="section-card">
+                <div className="section-card-header">
+                  <span className="step-pill" style={{background:'#15803d'}}>{t.rocResultLabel}</span>
+                  <h2>{t.rocResultTitle}</h2>
+                </div>
+                <div className="section-card-body">
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>{t.colNum}</th>
+                          <th>{t.colAttrName}</th>
+                          <th>{t.colROCWeight}</th>
+                          <th>{t.colCategory}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {attrNames.map((name, i) => (
+                          <tr key={i}>
+                            <td className="center" style={{color:'#9ca3af', fontSize:'.8rem'}}>{i+1}</td>
+                            <td style={{fontWeight:600}}>{name}</td>
+                            <td><span className="roc-mono">{roc[i] !== undefined ? roc[i].toFixed(6) : 'N/A'}</span></td>
+                            <td>
+                              <span style={{
+                                background: choiceVal[i]==='Benefit' ? '#dcfce7' : '#fee2e2',
+                                color: choiceVal[i]==='Benefit' ? '#166534' : '#991b1b',
+                                padding:'2px 10px', borderRadius:20, fontSize:'.78rem', fontWeight:600
+                              }}>{choiceVal[i]}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Step 2 ── */}
+            <div className="section-card">
+              <div className="section-card-header">
+                <span className="step-pill">{t.step2Label}</span>
+                <h2>{t.step2Title}</h2>
+              </div>
+              <div className="section-card-body">
+                {!showTahap3 && (
+                  <div className="info-banner">
+                    <span className="icon">ℹ</span>
+                    {t.infoBannerROC}
+                  </div>
+                )}
+                {showTahap3 && !rows.length && (
+                  <div className="info-banner">
+                    <span className="icon">➕</span>
+                    {t.infoBannerAdd}
+                  </div>
+                )}
+
+                {rows.length > 0 && (
+                  <div className="table-wrap" style={{marginBottom:16}}>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>{t.colAlternative}</th>
+                          {attrNames.map((n,i) => <th key={i}>{n}</th>)}
+                          <th className="center" id="hideOnPrint">{t.colRemove}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((row, ri) => (
+                          <tr key={ri}>
+                            <td>
+                              <input type="text" value={row.alternative||''} placeholder={t.altPlaceholder}
+                                onChange={e => updateRow(ri,'alternative',e.target.value)} />
+                            </td>
+                            {attrNames.map((n,ci) => (
+                              <td key={ci}>
+                                <input type="number" value={row[n]!==undefined?row[n]:''}
+                                  onChange={e => updateRow(ri,n,e.target.value)} />
+                              </td>
+                            ))}
+                            <td className="center" id="hideOnPrint">
+                              <button type="button" className="btn btn-danger btn-icon btn-sm" onClick={() => removeRow(ri)}>✕</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {showTahap3 && (
+                  <div className="action-bar" id="hideOnPrint">
+                    <button type="button" className="btn btn-outline btn-sm" onClick={addRow}>{t.addAlt}</button>
+                    <div className="spacer"></div>
+                    {rows.length >= 2 && (
+                      <button type="button" className="btn btn-primary btn-sm" onClick={handleSAW}>
+                        {t.calcSAW}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* SAW Results */}
+                {showTahap4 && (
+                  <div className="result-card">
+                    <div className="result-card-title">{t.rankResultTitle}</div>
+                    <div className="table-wrap" style={{marginBottom:16}}>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th className="center">{t.colRank}</th>
+                            <th>{t.colAlternative}</th>
+                            <th className="center">{t.colWeightedSum}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sawResults.map((r, i) => (
+                            <tr key={i} className={r.rank===1?'winner-row':''}>
+                              <td className="center">
+                                {r.rank===1
+                                  ? <span className="winner-badge">{t.rank1st}</span>
+                                  : <span style={{color:'#9ca3af', fontSize:'.85rem'}}>#{r.rank}</span>
+                                }
+                              </td>
+                              <td style={{fontWeight: r.rank===1?700:400}}>{r.alternative}</td>
+                              <td className="center"><span className="roc-mono">{r.sum.toFixed(4)}</span></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="conclusion-box" dangerouslySetInnerHTML={{__html: t.conclusionBox(getBest())}} />
+                    <div style={{display:'flex', justifyContent:'flex-end', marginTop:14}} id="hideOnPrint">
+                      <button type="button" className="btn btn-danger btn-sm" onClick={resetAll}>{t.resetAll}</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </form>
+        </main>
+      )}
+
+      {/* ── Tutorial ── */}
+      {page === 'tutorial' && (
+        <main className="page-content">
+          <div className="page-header">
+            <div>
+              <h1>{t.tutorialTitle}</h1>
+              <div className="timestamp"><h3>{t.tutorialSubtitle}</h3></div>
+            </div>
+          </div>
+          <div className="tutorial-wrap">
+            <AccordionItem defaultOpen header={t.acc1Header}>
+              <p dangerouslySetInnerHTML={{__html: t.acc1p1}} />
+              <div className="formula-box">
+                W<sub>k</sub> = (1/k) × Σ<sub>i=1..k</sub> (1/i)
+              </div>
+              <p dangerouslySetInnerHTML={{__html: t.acc1formulaNote}} />
+            </AccordionItem>
+
+            <AccordionItem header={t.acc2Header}>
+              <p dangerouslySetInnerHTML={{__html: t.acc2p1}} />
+              <ul>
+                {t.acc2items.map((item, i) => <li key={i} dangerouslySetInnerHTML={{__html: item}} />)}
+              </ul>
+              <p style={{marginTop:12}} dangerouslySetInnerHTML={{__html: t.acc2p2}} />
+            </AccordionItem>
+
+            <AccordionItem header={t.acc3Header}>
+              <p dangerouslySetInnerHTML={{__html: t.acc3p1}} />
+              <h5>{t.acc3physical}</h5>
+              <table className="tutorial-table">
+                <thead><tr><th>{t.colCriterion}</th><th>{t.colUnit}</th><th>{t.colCatTbl}</th></tr></thead>
+                <tbody>{t.physicalRows.map((r,i) => <tr key={i}><td dangerouslySetInnerHTML={{__html:r[0]}} /><td>{r[1]}</td><td>{r[2]}</td></tr>)}</tbody>
+              </table>
+              <h5>{t.acc3chemical}</h5>
+              <table className="tutorial-table">
+                <thead><tr><th>{t.colCriterion}</th><th>{t.colUnit}</th><th>{t.colCatTbl}</th></tr></thead>
+                <tbody>{t.chemicalRows.map((r,i) => <tr key={i}><td dangerouslySetInnerHTML={{__html:r[0]}} /><td>{r[1]}</td><td>{r[2]}</td></tr>)}</tbody>
+              </table>
+              <h5>{t.acc3biological}</h5>
+              <table className="tutorial-table">
+                <thead><tr><th>{t.colCriterion}</th><th>{t.colUnit}</th><th>{t.colCatTbl}</th></tr></thead>
+                <tbody>{t.bioRows.map((r,i) => <tr key={i}><td dangerouslySetInnerHTML={{__html:r[0]}} /><td>{r[1]}</td><td>{r[2]}</td></tr>)}</tbody>
+              </table>
+              <h5>{t.acc3organo}</h5>
+              <table className="tutorial-table">
+                <thead><tr><th>{t.colCriterion}</th><th>{t.colUnit}</th><th>{t.colCatTbl}</th></tr></thead>
+                <tbody>{t.organoRows.map((r,i) => <tr key={i}><td dangerouslySetInnerHTML={{__html:r[0]}} /><td>{r[1]}</td><td>{r[2]}</td></tr>)}</tbody>
+              </table>
+              <p style={{marginTop:12, fontStyle:'italic', color:'#6b7280'}}>{t.acc3note}</p>
+            </AccordionItem>
+          </div>
+        </main>
+      )}
+
+      {/* ── Modals ── */}
+      <Modal show={showMinModal} onHide={() => setShowMinModal(false)} title={t.modalMinTitle}
+        footer={<button className="btn btn-primary btn-sm" onClick={() => setShowMinModal(false)}>{t.understood}</button>}>
+        <p dangerouslySetInnerHTML={{__html: t.modalMinBody}} />
+      </Modal>
+      <Modal show={showMaxModal} onHide={() => setShowMaxModal(false)} title={t.modalMaxTitle}
+        footer={<button className="btn btn-primary btn-sm" onClick={() => setShowMaxModal(false)}>{t.understood}</button>}>
+        <p dangerouslySetInnerHTML={{__html: t.modalMaxBody}} />
+      </Modal>
+      <Modal show={showModal} onHide={() => setShowModal(false)} title={t.modalResultTitle}
+        footer={<button className="btn btn-primary btn-sm" onClick={() => setShowModal(false)}>{t.close}</button>}>
+        <div className="modal-result-text">
+          <div className="modal-result-icon">🏆</div>
+          <p style={{color:'#6b7280', fontSize:'.88rem'}}>{t.modalResultSub}</p>
+          <div className="winner-name">{getBest()}</div>
+          <p style={{color:'#6b7280', fontSize:'.85rem', marginTop:6}} dangerouslySetInnerHTML={{__html: t.modalResultRank(getBest())}} />
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
